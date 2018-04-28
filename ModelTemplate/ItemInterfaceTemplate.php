@@ -17,7 +17,7 @@ class ItemInterfaceTemplate
         
         
         $str = <<<EOD
-@interface {$obj->modelName}Item : NSObject
+@interface $obj->modelName : NSObject
 
 $obj->varSets
 

@@ -75,18 +75,44 @@ class AnalysisAPI
     }
 
     private function analysisHtml() {
+        //API描述
         $this->apiDesC = self::subHtmlStr($this->htmlSourceCode, TitleHtmlHeader, TitleHtmlTail);
-        $parameterResult = self::subHtmlStr($this->htmlSourceCode, ParameterHtml, RightReturnHtml);
-        $parameterResult = self::subHtmlStr($parameterResult, null, ReturnHtml);
-        $parameterResult = self::subHtmlStr($parameterResult, ULHtmlHeader, ULHtmlTail);
-        $parameterArr = explode(LiHtmlTail, $parameterResult);
-        $json = self::subHtmlStr($this->htmlSourceCode, JsonHtmlHeader, JsonHtmlTail);
-        $jsonArr = json_decode($json, true);
-        $this->jsonData = ['data' => isset($jsonArr['info']['data']) ? $jsonArr['info']['data'] : null] ;
-        $this->jsonExtra = isset($jsonArr['info']['extra']) ? $jsonArr['info']['extra'] : null;
-        $this->jsonData =  self::transformValueToType($this->jsonData);
-        $this->jsonExtra = self::transformValueToType($this->jsonExtra);
+        if ($this->apiDesC === false) {
+            echo "无法找到api描述" . PHP_EOL;
+        }
+
+        //想到相应的json标签和参数标签
+        $returnLab = ParameterHtml;
+        $jsonLab = JsonHtmlHeader;
+        if (strpos($this->htmlSourceCode, ParameterHtml) === false) {
+            $returnLab = ParameterHtml1;
+
+            if (strpos($this->htmlSourceCode, ParameterHtml1) === false) {
+                $returnLab = JsonHtmlHeader;
+
+                if (strpos($this->htmlSourceCode, JsonHtmlHeader) === false) {
+                    $returnLab = PhpHtmlHeader;
+                    $jsonLab = PhpHtmlHeader;
+
+                    if (strpos($this->htmlSourceCode, PhpHtmlHeader) === false) {
+                        echo '找不到相应参数标签' . PHP_EOL;
+                        exit(1);
+                    }
+                }
+            }
+        }
         
+        if (strpos($this->htmlSourceCode, JsonHtmlHeader) === false) {
+            $jsonLab = PhpHtmlHeader;
+            if (strpos($this->htmlSourceCode, PhpHtmlHeader) === false) {
+                echo '找不到相应json标签' . PHP_EOL;
+                exit(1);
+            }
+        }
+        
+        //爬取参数数据
+        $parameterResult = self::subHtmlStr($this->htmlSourceCode, 0, $returnLab);
+        $parameterArr = explode(LiHtmlTail, $parameterResult);
         foreach ($parameterArr as $parameterDesc) {
             $parameter = self::subHtmlStr($parameterDesc, CodeHtmlHeader, CodeHtmlTail);
             if ($parameter !== false) {
@@ -104,16 +130,45 @@ class AnalysisAPI
             }
         }
         
+        //爬去json数据,取最多字符串数字最多为成功数据(野蛮爬)
+        $jsonDesc = $this->htmlSourceCode;
+        $jsons = array();
+        while (1) {
+            $json = self::subHtmlStr($jsonDesc, $jsonLab, JsonHtmlTail);
+            if ($json === false) {
+                break;
+            }
+            $jsons[] = $json;
+            $jsonDesc = self::subHtmlStr($jsonDesc, JsonHtmlTail, null);
+        }
+
+        $successJson = '';
+        foreach ($jsons as $value) {
+            if (strlen($value) > strlen($successJson)) {
+                $successJson = $value;
+            }
+        }
         
+        $jsonArr = json_decode($successJson, true);
+        $this->jsonData = ['data' => isset($jsonArr['info']['data']) ? $jsonArr['info']['data'] : null] ;
+        $this->jsonExtra = isset($jsonArr['info']['extra']) ? $jsonArr['info']['extra'] : null;
+        $this->jsonData =  self::transformValueToType($this->jsonData);
+        $this->jsonExtra = self::transformValueToType($this->jsonExtra);
     }
 
+    //header可传数值,当header或者tail搜索不到时,返回false,tail为null时,返回头部到tail的字段
     public static function subHtmlStr($str, $header, $tail = null) {
-        if ($header == null) {
-            $headerPos = 0;
+        if (is_integer($header)) {
+            $headerPos = $header;
         } else {
             $headerPos = strpos($str, $header);
-            $headerPos += strlen($header);
+            if ($headerPos === false) {
+                return false;
+            } else {
+                $headerPos += strlen($header);
+            }
         }
+        
 
         if ($tail === null) {
             return substr($str, $headerPos);
@@ -121,7 +176,7 @@ class AnalysisAPI
 
         $tailPos = strpos($str, $tail);
         if ($tailPos === false) {
-            return substr($str, $headerPos);
+            return false;
         }
 
         $strLenght = $tailPos - $headerPos;
@@ -155,7 +210,7 @@ class AnalysisAPI
                     $newValue = $dict[$key];
                     $newKey = ucfirst($classMap[$key]) . $modelType[0] . ' *';
                     $newDict[$key] = new IOSObject($newKey, self::transformValueToType($newValue));
-                } else if (!$classMap[$key] && isset($value[0]) && is_string($value[0])){
+                } else if (!isset($classMap[$key]) && isset($value[0]) && is_string($value[0])){
                     $type = "NSArray<NSString* > *";
                     $newDict[$key] = $type;
                 } else {

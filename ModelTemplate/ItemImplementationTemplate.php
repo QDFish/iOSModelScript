@@ -88,9 +88,9 @@ EOT;
                 $var = ucReplaceUnderLine($_key); $initDesc = '';
 
                 if ($api->jsonExtra !== null) {
-                    $initDesc = "[[{$classMap[$_key]}Item alloc] initWithData:data extra:extra]];";
+                    $initDesc = "[[{$classMap[$_key]}Item alloc] initWithData:obj extra:extra];";
                 } else {
-                    $initDesc = "[[{$classMap[$_key]}Item alloc] initWithData:data extra:extra]];";
+                    $initDesc = "[[{$classMap[$_key]}Item alloc] initWithData:obj];";
                 }
 
                 //变量是数组集合
@@ -108,6 +108,12 @@ EOT;
 
 EOT;
                 } else {
+
+                    if ($api->jsonExtra !== null) {
+                        $initDesc = "[[{$classMap[$_key]}Item alloc] initWithData:dict extra:extra];";
+                    } else {
+                        $initDesc = "[[{$classMap[$_key]}Item alloc] initWithData:dict];";
+                    }
 
                     $strs .= <<< EOG
         self.$var = $initDesc
@@ -136,7 +142,7 @@ EOT;
 EOT;
                     if (strpos($_key, 'avatar') !== false) {
                         $strs .= <<< EOT
-        self.$var = [ResponseUtil appendImgUrlWithHost:avatarHost imgUrl:self.$var];
+        self.$var = [ResponseUtil appendImgUrlWithHost:avaHost imgUrl:self.$var];
 
 EOT;
 

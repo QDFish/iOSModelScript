@@ -61,7 +61,7 @@ class WriteHandle
         $filePath = $desPath . DIRECTORY_SEPARATOR . $this->implementationFilename;
         $writeHandle = fopen($desPath . DIRECTORY_SEPARATOR . $this->implementationFilename, 'w+');
         fwrite($writeHandle, $fileAnnotation);
-        fwrite($writeHandle, '#import "' . $this->implementationFilename . "\"\n\n");
+        fwrite($writeHandle, '#import "' . $this->interfaceModelFilename . "\"\n\n");
         fclose($writeHandle);
         echo "创建{$filePath}成功" . PHP_EOL;
     }

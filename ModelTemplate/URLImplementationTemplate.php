@@ -15,9 +15,12 @@ class URLImplementationTemplate
 {
     public static function template(AnalysisAPI $api)
     {
+        global $requestMethod;
+        
         $obj = new URLImplementationObj($api);
 
-        $str = <<<EOD
+        if ($requestMethod === 'GET') {
+            $str = <<<EOD
 $obj->apiAnnotation
 - (NSString *){$obj->modelName}UrlWith{$obj->apiMethod} {
      return [NSString stringWithFormat:@"%@$obj->detailPath?$obj->impleMethod", $obj->domain, $obj->parameterDesc];
@@ -27,6 +30,20 @@ $obj->apiAnnotation
 
 
 EOD;
+        } else {
+            $str = <<<EOD
+$obj->apiAnnotation
+- (NSString *){$obj->modelName}Url {
+     return [NSString stringWithFormat:@"%@$obj->detailPath", $obj->domain];
+}
+
+@end
+
+
+EOD;
+        }
+        
+    
         return $str;
 
     }

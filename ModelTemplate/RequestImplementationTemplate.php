@@ -20,8 +20,9 @@ class RequestImplementationTemplate {
     $obj->blockName _finish;
 }
 
-+ (void)send{$obj->requestName}With$obj->apiMethod withFinishBlock:(LiveFamilyFinishBlock)finish {
++ (void)send{$obj->requestName}With$obj->apiMethod withFinishBlock:($obj->blockName)finish {
     $obj->requestName *req = [[$obj->requestName alloc] initWithURL:[[UrlManager shareManager] $obj->urlMethod] andDelegate:nil reqSysType:$obj->reqType];
+$obj->postDesc    
     req.delegate = req;
     req->_finish = finish;
     [req addSelectFinish:@selector(requestDidFinishLoad:) andDidFailSelector:@selector(requestDidFailureLoad:)];
@@ -65,14 +66,32 @@ class RequestImplementationObj {
 
     public $initDesc;
 
+    public $postDesc;
+
     public function __construct(AnalysisAPI $api) {
-        global $domainsMap;
+        global $domainsMap, $requestMethod;
 
         $this->requestName = ucfirst($api->modelName) . 'Request';
         $this->blockName = ucfirst($api->modelName) . FinishBlock;
         $this->apiMethod = apiInterface($api->parameters);
         $this->reqType = $domainsMap[$api->domain]['reqType'];
-        $this->urlMethod = lcfirst($this->requestName) . "With" . parameterSetter($api->parameters);
+
+        if ($requestMethod === 'GET') {
+            $this->urlMethod = lcfirst($api->modelName) . "UrlWith" . parameterSetter($api->parameters);
+            $this->postDesc = '';
+        } else {
+            $this->urlMethod = lcfirst($api->modelName) . "Url";
+            
+            $this->postDesc = '';
+            foreach ($api->parameters as $key => $value) {
+                $_value = ucReplaceUnderLine($value['name']);
+                $_key = $value['name'];
+                $this->postDesc .= "\t[req addPostSafeValue:$_value forKey:@\"$_key\"];" . PHP_EOL;
+            }
+            
+        }
+
+
 
         $itemName = $api->jsonData['data']->value !== null ? $api->jsonData['data']->type : null ;
         $realItemName = classMapContainType($itemName);
@@ -81,7 +100,7 @@ class RequestImplementationObj {
                 
                 $this->initDesc= <<< EOT
         NSDictionary *extra = req.resObj.extraDic;
-        $realItemName *item = [[$realItemName alloc] initWithData:data withExtra:extra];
+        $realItemName *item = [[$realItemName alloc] initWithData:data extra:extra];
         self->_finish ? self->_finish(req.resObj, item) : nil;
 EOT;
             } else {

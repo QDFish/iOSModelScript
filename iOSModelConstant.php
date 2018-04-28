@@ -8,7 +8,6 @@
 
 define("UrlMangerInterfacePath", "/Users/zgzheng/TouchiOS_new/TaQu/CommonDefine/UrlManager.h");
 define("UrlMangerImplementationPath", "/Users/zgzheng/TouchiOS_new/TaQu/CommonDefine/UrlManager.m");
-define("LivePre", "live");
 define("FoundationFrameworkImport", "#import <Foundation/Foundation.h>");
 define("HBHttpRequestImport", "#import \"HBHTTPRequest.h\"");
 define("InterfaceLabel", "@interface");
@@ -34,10 +33,12 @@ define("UpateTimeHtmlHeader", "<span style=\"color: purple\">最后更新时间�
 define("TitleHtmlHeader", "<h2>");
 define("TitleHtmlTail", "</h2>");
 define("JsonHtmlHeader", "<pre><code class=\"language-json\">");
+define("PhpHtmlHeader", "<pre><code class=\"language-php\">");
 define("JsonHtmlTail", "</code></pre>");
-define("ParameterHtml", "<h3>参数说明</h3>");
-define("ReturnHtml", "<h3>返回值说明</h3>");
-define("RightReturnHtml", "<p>正确返回格式</p>");
+define("ParameterHtml", "参数说明");
+define("ParameterHtml1", "字段说明");
+define("ReturnHtml", "返回值说明");
+define("RightReturnHtml", "正确返回格式");
 define("CodeHtmlHeader", "<code>");
 define("CodeHtmlTail", "</code>");
 define("LiHtmlHeader", "<li>");
